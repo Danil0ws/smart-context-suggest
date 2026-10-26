@@ -32,9 +32,9 @@
 # When 1, skip recording commands that start with a space (like HIST_IGNORE_SPACE)
 : ${SMART_SUGGEST_IGNORE_SPACE:=1}
 # Rebuild the system command index after this many days of staleness (0 = never auto-rebuild)
-: ${SMART_SUGGEST_INDEX_DAYS:=7}
-# Max binaries to deep-index via --help parsing (the rest get registered as binary-only)
-: ${SMART_SUGGEST_INDEX_DEEP:=80}
+: ${SMART_SUGGEST_INDEX_DAYS:=0}
+# Max binaries to deep-index via --help parsing (0 = disabled; only well-known tools are deep-indexed)
+: ${SMART_SUGGEST_INDEX_DEEP:=0}
 
 # ---------- Sanity check ----------
 
