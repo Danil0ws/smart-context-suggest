@@ -1027,7 +1027,7 @@ zle -N _smart_suggest_clear
 # It does NOT work on: macOS Terminal.app (no mouse support), dumb terminals.
 #
 # Set SMART_SUGGEST_MOUSE:=0 to disable entirely.
-: ${SMART_SUGGEST_MOUSE:=1}
+: ${SMART_SUGGEST_MOUSE:=0}
 
 if [[ $SMART_SUGGEST_MOUSE -eq 1 ]]; then
 
