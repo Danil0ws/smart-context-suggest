@@ -1,14 +1,13 @@
-/// Database layer for smart-context-suggest.
-///
-/// Uses SQLite in WAL mode for:
-/// - Fast concurrent reads (query on every keystroke)
-/// - Non-blocking writes (record in background)
-/// - Tiny footprint (~kilobytes per project)
-///
-/// Schema: one table `memory` keyed by (directory, command).
-/// All heavy work (scoring, ranking) happens in Rust, not SQL — keeps
-/// the query simple and the schema stable.
-
+//! Database layer for smart-context-suggest.
+//!
+//! Uses SQLite in WAL mode for:
+//! - Fast concurrent reads (query on every keystroke)
+//! - Non-blocking writes (record in background)
+//! - Tiny footprint (~kilobytes per project)
+//!
+//! Schema: one table `memory` keyed by (directory, command).
+//! All heavy work (scoring, ranking) happens in Rust, not SQL — keeps
+//! the query simple and the schema stable.
 use rusqlite::{params, Connection, Result};
 use std::path::Path;
 
@@ -353,7 +352,7 @@ pub fn query_commands(
     Ok(rows)
 }
 
-/// Delete all indexed entries for a binary (used before re-indexing it).
+#[allow(dead_code)]
 pub fn clear_binary_index(conn: &Connection, binary: &str) -> Result<()> {
     conn.execute("DELETE FROM commands WHERE binary = ?1", params![binary])?;
     Ok(())

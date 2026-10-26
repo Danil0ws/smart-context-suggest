@@ -1,11 +1,11 @@
-/// Score formula for ranking shell command suggestions.
-///
-/// Inspired by spaced-repetition systems (Ebbinghaus forgetting curve) and
-/// frequency-recency models used in tools like zoxide and Limbic (Hermes).
-///
-/// The goal: a command you ran 10x in this directory last week should beat
-/// one you ran once a year ago — but a very recent single run can still beat
-/// an old frequent one.
+//! Score formula for ranking shell command suggestions.
+//!
+//! Inspired by spaced-repetition systems (Ebbinghaus forgetting curve) and
+//! frequency-recency models used in tools like zoxide and Limbic (Hermes).
+//!
+//! The goal: a command you ran 10x in this directory last week should beat
+//! one you ran once a year ago — but a very recent single run can still beat
+//! an old frequent one.
 
 // ---------- Weights ----------
 // Tune these constants to shift emphasis between signals.

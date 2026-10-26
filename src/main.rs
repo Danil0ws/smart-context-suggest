@@ -1,26 +1,25 @@
-/// smart-suggest — CLI backend for the smart-context-suggest zsh plugin.
-///
-/// All subcommands are designed to be called from Zsh hooks.
-/// Design goals:
-///   - `record` and `mark-success`: < 2 ms (run on every command)
-///   - `query`: < 5 ms (run on every keystroke via autosuggest)
-///   - `decay`: can be slower, runs once per day
-///
-/// Usage:
-///   smart-suggest record    --dir <D> --cmd <C> --ts <T> [--is-project]
-///   smart-suggest mark-success --dir <D> --cmd <C> --ok <0|1>
-///   smart-suggest query     --dir <D> --prefix <P> [--limit <N>] [--json] [--scores]
-///   smart-suggest decay     [--stale-days <N>]
-///   smart-suggest list      [--dir <D>]
-///   smart-suggest stats
-///   smart-suggest clear     [--dir <D> | --all]
-///   smart-suggest export
-///   smart-suggest debug     <on|off>
-
+//! smart-suggest — CLI backend for the smart-context-suggest zsh plugin.
+//!
+//! All subcommands are designed to be called from Zsh hooks.
+//! Design goals:
+//!   - `record` and `mark-success`: < 2 ms (run on every command)
+//!   - `query`: < 5 ms (run on every keystroke via autosuggest)
+//!   - `decay`: can be slower, runs once per day
+//!
+//! Usage:
+//!   smart-suggest record    --dir <D> --cmd <C> --ts <T> [--is-project]
+//!   smart-suggest mark-success --dir <D> --cmd <C> --ok <0|1>
+//!   smart-suggest query     --dir <D> --prefix <P> [--limit <N>] [--json] [--scores]
+//!   smart-suggest decay     [--stale-days <N>]
+//!   smart-suggest list      [--dir <D>]
+//!   smart-suggest stats
+//!   smart-suggest clear     [--dir <D> | --all]
+//!   smart-suggest export
+//!   smart-suggest debug     <on|off>
 mod db;
 mod score;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn main() {
@@ -60,7 +59,7 @@ fn main() {
 // ---------- Subcommand implementations ----------
 
 /// `record --dir D --cmd C [--ts T] [--is-project]`
-fn cmd_record(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn cmd_record(args: &[String], db_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let dir = require_flag(args, "--dir")?;
     let cmd = require_flag(args, "--cmd")?;
     let ts = flag_i64(args, "--ts").unwrap_or_else(now_secs);
@@ -79,7 +78,7 @@ fn cmd_record(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::err
 }
 
 /// `mark-success --dir D --cmd C --ok 0|1`
-fn cmd_mark_success(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn cmd_mark_success(args: &[String], db_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let dir = require_flag(args, "--dir")?;
     let cmd = require_flag(args, "--cmd")?;
     let ok_str = flag_value(args, "--ok").unwrap_or_default();
@@ -97,7 +96,7 @@ fn cmd_mark_success(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn st
 /// Prints top suggestions, one per line.
 /// With --json: prints JSON array of {command, score}.
 /// With --scores: appends score after a tab.
-fn cmd_query(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn cmd_query(args: &[String], db_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let dir = require_flag(args, "--dir")?;
     let prefix = flag_value(args, "--prefix").unwrap_or_default();
     let limit = flag_usize(args, "--limit").unwrap_or(10);
@@ -141,7 +140,7 @@ fn cmd_query(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::erro
 }
 
 /// `decay [--stale-days N]`
-fn cmd_decay(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn cmd_decay(args: &[String], db_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let stale_days = flag_i64(args, "--stale-days").unwrap_or(90);
     let conn = db::open_and_migrate(db_path)?;
     let (deleted, decayed) = db::apply_decay(&conn, stale_days, now_secs())?;
@@ -154,7 +153,7 @@ fn cmd_decay(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::erro
 }
 
 /// `list [--dir D]`
-fn cmd_list(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn cmd_list(args: &[String], db_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let dir = flag_value(args, "--dir").unwrap_or_else(|| {
         std::env::current_dir()
             .unwrap_or_default()
@@ -201,7 +200,7 @@ fn cmd_list(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::error
 }
 
 /// `stats`
-fn cmd_stats(db_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn cmd_stats(db_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let conn = db::open_and_migrate(db_path)?;
     let s = db::stats(&conn)?;
 
@@ -222,7 +221,7 @@ fn cmd_stats(db_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// `clear [--dir D | --all]`
-fn cmd_clear(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn cmd_clear(args: &[String], db_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let all = args.contains(&"--all".to_string());
     let dir = flag_value(args, "--dir");
 
@@ -238,7 +237,7 @@ fn cmd_clear(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::erro
 }
 
 /// `export` — prints all entries as JSON to stdout.
-fn cmd_export(db_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn cmd_export(db_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let conn = db::open_and_migrate(db_path)?;
     let rows = db::export_all(&conn)?;
     println!("{}", serde_json::to_string_pretty(&rows)?);
@@ -272,7 +271,7 @@ fn cmd_debug(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// Stores one completion entry for a binary.
 /// Called in batch from the Zsh indexer for each discovered subcommand/flag.
-fn cmd_index(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn cmd_index(args: &[String], db_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let binary = require_flag(args, "--binary")?;
     let completion = require_flag(args, "--completion")?;
     let kind = flag_value(args, "--kind").unwrap_or_else(|| "subcommand".into());
@@ -292,7 +291,7 @@ fn cmd_index(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::erro
 ///
 /// Query the command index for completions matching a prefix.
 /// Used by the fzf menu to show system-wide completions.
-fn cmd_query_cmd(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn cmd_query_cmd(args: &[String], db_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let prefix = flag_value(args, "--prefix").unwrap_or_default();
     let limit = flag_usize(args, "--limit").unwrap_or(30);
     let json = args.contains(&"--json".to_string());
@@ -319,7 +318,7 @@ fn cmd_query_cmd(args: &[String], db_path: &PathBuf) -> Result<(), Box<dyn std::
 }
 
 /// `index-stats`
-fn cmd_index_stats(db_path: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn cmd_index_stats(db_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let conn = db::open_and_migrate(db_path)?;
     let (completions, binaries) = db::index_stats(&conn)?;
     println!("Command index: {completions} completions across {binaries} binaries");
@@ -384,7 +383,7 @@ fn now_secs() -> i64 {
 
 fn atty() -> bool {
     // Rough check: if stdin is a tty, we're probably interactive
-    unsafe { libc_isatty(1) }
+    libc_isatty(1)
 }
 
 #[cfg(unix)]
