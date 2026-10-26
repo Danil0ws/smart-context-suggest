@@ -39,7 +39,7 @@ Ghost-text completions that learn from **your commands, in your directories** â€
 ## âš¡ Quick Install
 
 ```zsh
-git clone https://github.com/yourname/smart-context-suggest \
+git clone https://github.com/Danil0ws/smart-context-suggest \
   ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/smart-context-suggest
 
 cd ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/smart-context-suggest

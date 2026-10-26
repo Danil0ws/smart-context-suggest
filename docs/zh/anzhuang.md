@@ -35,7 +35,7 @@ source ~/.cargo/env
 ## 步骤 3 — 克隆插件
 
 ```zsh
-git clone https://github.com/yourname/smart-context-suggest \
+git clone https://github.com/Danil0ws/smart-context-suggest \
   ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/smart-context-suggest
 ```
 
